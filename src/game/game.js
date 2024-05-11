@@ -3,10 +3,14 @@ import { colors, maxGuesses, hiddenColorCount } from "../config.js"
 export class Game {
     constructor() {
         this.colors = colors;
-        this.maxGuesses = maxGuesses;
+        this.maxGuessCount = maxGuesses;
         this.hiddenColorCount = hiddenColorCount;
 
+        // 'initial' | 'initialized' | 'won' | 'lost'
+        this.state = 'initial';
+
         this.hiddenColors = null;
+        this.currentGuessCount = 0;
     }
 
     init() {
@@ -16,9 +20,13 @@ export class Game {
             const hiddenColor = this.colors[Math.floor(Math.random() * this.colors.length)];
             this.hiddenColors.push(hiddenColor);
         }
+        this.state = 'initialized';
     }
 
     respondToGuess(guessColors) {
+        if (this.state !== 'initialized') {
+            throw new Error("Game either not initialized or is over");
+        }
         if (guessColors.length !== this.hiddenColorCount) {
             throw new Error("Guess colors count does not match hidden color count");
         }
@@ -34,6 +42,14 @@ export class Game {
             if (this.hiddenColors[i] === guessColors[i]) {
                 response.correctPositionCount += 1;
             }
+        }
+
+        this.currentGuessCount += 1;
+        if (this.currentGuessCount === this.maxGuessCount) {
+            this.state = 'lost';
+        }
+        if (response.correctPositionCount === this.hiddenColorCount) {
+            this.state = 'won';
         }
         return response;
     }
